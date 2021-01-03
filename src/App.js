@@ -1,27 +1,12 @@
-import { Fragment, useState } from 'react';
 import './App.css';
+import TodoList from './views/TodoList/TodoList';
 
 const App = () => {
-  const [text, setText] = useState('');
-
-  // setText関数
-  const changedText = (e) => {
-    setText(e.target.value)
-  }
-
-  // alert出力関数
-  const clickedButton = () => {
-    alert(text);
-  }
-
-  return (
-    <Fragment>
-      <h1>Hello!! React!!</h1>
-      <input type="text" value={text} onChange={changedText} />
-      <br />
-      <button onClick={clickedButton}>Click Me!!!</button>
-    </Fragment>
-  );
+    return (
+        <div className="App">
+            <TodoList />
+        </div>
+    )
 }
 
 export default App;
