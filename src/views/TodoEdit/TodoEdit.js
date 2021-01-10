@@ -1,40 +1,66 @@
-import { Fragment, useState, useContext } from 'react'
+import { Fragment, useEffect, useState, useContext } from 'react'
 import './TodoEdit.css'
+import axios from 'axios'
 import { TodoListContext } from '../../context/TodoListContext'
 import { useHistory, useParams } from 'react-router-dom'
 
 const TodoEdit = () => {
   const id = parseInt(useParams().id);
-  const {todoList, setTodoList} = useContext(TodoListContext);
-  const todo = todoList.filter((todo) => todo.id === id)[0];
-  const [title, setTitle] = useState(todo.title);
-  const [description, setDescription] = useState(todo.description);
+  const { todoList, setTodoList } = useContext(TodoListContext);
+  const emptyTodo = {
+    id: id,
+    title: '',
+    description: '',
+  }
+  const [todo, setTodo] = useState(emptyTodo);
+
+  // 最新を取得
+  useEffect(() => {
+    const getTodo = async() =>{
+      const response = await axios.get(`todos/${id}`)
+      setTodo(response.data);
+    };
+    getTodo();
+  }, [id, setTodo]);
 
   const history = useHistory();
 
+  // タイトルの変更
   const changedTitle = (e) => {
-    setTitle(e.target.value);
+    const newTodo = Object.assign({}, todo);
+    newTodo.title = e.target.value;
+    setTodo(newTodo);
   }
 
+  // 詳細の変更
   const changedDescription = (e) => {
-    setDescription(e.target.value);
+    const newTodo = Object.assign({}, todo);
+    newTodo.description = e.target.value;
+    setTodo(newTodo);
   }
 
-  const clickedSave = () => {
-    if (title === '' && description === '') return;
+  const clickedSave = async () => {
+    if (todo.title === '' && todo.description === '') return;
     const newTodoList = todoList.slice();
-    newTodoList.forEach((todo) => {
-      if(todo.id === id) {
-        todo.title = title;
-        todo.description = description;
+    newTodoList.forEach((newTodo) => {
+      if (newTodo.id === id) {
+        newTodo.title = todo.title;
+        newTodo.description = todo.description;
       }
     });
+
+    const newTodo = newTodoList.find((todo) => todo.id === id)
+    await axios.put('todos', newTodo)
+    
     setTodoList(newTodoList);
     history.push('/');
   }
 
-  const clickedDelete = () => {
+  const clickedDelete = async () => {
     const newTodoList = todoList.slice().filter((todo) => todo.id !== id);
+
+    await axios.delete(`todos/${id}`);
+
     setTodoList(newTodoList);
     history.push('/');
   }
@@ -42,17 +68,17 @@ const TodoEdit = () => {
   return (
     <Fragment>
       <h1>TodoEdit {id}</h1>
-      
-      <input 
-        className="todo-title-input" 
-        type="text" 
-        value={title} 
-        onChange={changedTitle} 
+
+      <input
+        className="todo-title-input"
+        type="text"
+        value={todo.title}
+        onChange={changedTitle}
       />
-      <textarea 
-        className="todo-description-input" 
-        value={description} 
-        onChange={changedDescription} 
+      <textarea
+        className="todo-description-input"
+        value={todo.description}
+        onChange={changedDescription}
       />
 
       <button onClick={clickedSave}>save</button>
